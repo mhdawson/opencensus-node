@@ -421,6 +421,10 @@ export class HttpPlugin extends BasePlugin {
           }
           span.addMessageEvent(MessageEventType.SENT, 1);
 
+          if (plugin.customAttributeFunction) {
+            plugin.customAttributeFunction(span.kind, span, request, response);
+          }
+
           HttpPlugin.recordStats(span.kind, tags, Date.now() - startTime);
           span.end();
         });
@@ -511,6 +515,15 @@ export class HttpPlugin extends BasePlugin {
         (options as RequestOptions).headers &&
         (options as RequestOptions).headers!.Expect);
   }
+
+  customAttributeFunction!: CustomAttributeFunction;
+  public registerCustomAttributeFunction(custFunc: CustomAttributeFunction ) {
+    this.customAttributeFunction = custFunc; 
+  }
+}
+
+interface CustomAttributeFunction {
+  (kind:SpanKind, span: Span, request: ClientRequest, response: ClientResponse): void ;
 }
 
 const plugin = new HttpPlugin('http');
